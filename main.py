@@ -55,7 +55,8 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
         try:
             print(f"\nRequest số {request_count + 1}")
             print(f"Đang dịch: {text}")
-            prompt = get_prompt_by_type(prompt_type).format(text=text)
+            prompt_template = get_prompt_by_type(prompt_type)
+            prompt = prompt_template.format(text=text)
             
             response = model.generate_content(prompt)
             translated = response.text.strip()

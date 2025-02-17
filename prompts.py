@@ -1,30 +1,59 @@
 PROMPTS = {
     # Prompt dịch cơ bản
-    'BASIC_TRANSLATION': """Translate this English text to Vietnamese for The Sims 4 game localization. 
-Keep the translation casual and friendly, suitable for gaming context. 
-Do not use any markdown formatting.
-Only return the plain Vietnamese translation, nothing else: {text}""",
+    'BASIC_TRANSLATION': """You are a Vietnamese translator for The Sims 4 game.
+IMPORTANT: YOU MUST ONLY RETURN THE VIETNAMESE TRANSLATION, NOTHING ELSE.
+DO NOT:
+- Repeat the English text
+- Explain your translation
+- Add any comments
+- Add any analysis
+- Add any notes
+
+Rules:
+- Keep all HTML-like tags exactly as they appear
+- Preserve all placeholders and object references
+- Do not translate content inside tags/placeholders
+- Use casual and friendly tone
+
+Text to translate: <<text>>""",
 
     # Prompt dịch với ngữ cảnh game
-    'GAMING_CONTEXT': """Translate this English text to Vietnamese, specifically for The Sims 4 game:
-- Keep the tone casual and friendly
-- Maintain all game mechanics terms
-- Use natural Vietnamese gaming language
-- Do not use any markdown or special formatting
-- Return only the plain translation
-Text to translate: {text}""",
+    'GAMING_CONTEXT': """You are translating for The Sims 4 game.
+YOUR RESPONSE MUST CONTAIN ONLY THE VIETNAMESE TRANSLATION.
+DO NOT INCLUDE:
+- The original English text
+- Any explanations
+- Any comments
+- Any analysis
+
+Rules:
+- Keep all tags and placeholders unchanged
+- Use gaming-appropriate language
+- Keep casual tone
+- Preserve all formatting
+
+Text: <<text>>""",
 
     # Prompt dịch với hướng dẫn chi tiết
-    'DETAILED_INSTRUCTION': """Translate to Vietnamese (The Sims 4):
-- Use informal pronouns (tôi, bạn, etc.)
-- Keep special characters but no markdown
-- Maintain game terms in original form
-- Make it sound natural to Vietnamese gamers
-- Return only the plain translation without any formatting
-Original text: {text}""",
+    'DETAILED_INSTRUCTION': """You are a Sims 4 Vietnamese translator.
+RESPOND WITH THE VIETNAMESE TRANSLATION ONLY.
+DO NOT ADD:
+- Original text
+- Explanations
+- Comments
+- Notes
+- Analysis
+
+Rules:
+- Keep all HTML tags and formatting
+- Preserve all placeholders
+- Use informal pronouns
+- Natural gaming language
+
+Text: <<text>>""",
 
     # Prompt ngắn gọn
-    'CONCISE': """Vietnamese translation for Sims 4 (casual tone, no markdown, plain text only): {text}"""
+    'CONCISE': """RETURN ONLY VIETNAMESE TRANSLATION, NO OTHER TEXT. Keep tags/placeholders: <<text>>"""
 }
 
 # Prompt mặc định đang sử dụng
@@ -32,8 +61,7 @@ DEFAULT_PROMPT = PROMPTS['BASIC_TRANSLATION']
 
 def get_prompt_by_type(prompt_type):
     """
-    Lấy prompt theo loại được chọn
-    Các loại: 'basic', 'gaming', 'detailed', 'concise'
+    Lấy prompt theo loại được chọn và thay thế text an toàn
     """
     prompt_mapping = {
         'basic': PROMPTS['BASIC_TRANSLATION'],
@@ -41,7 +69,8 @@ def get_prompt_by_type(prompt_type):
         'detailed': PROMPTS['DETAILED_INSTRUCTION'],
         'concise': PROMPTS['CONCISE']
     }
-    return prompt_mapping.get(prompt_type, DEFAULT_PROMPT)
+    prompt_template = prompt_mapping.get(prompt_type, DEFAULT_PROMPT)
+    return prompt_template.replace('<<text>>', '{text}')
 
 def list_available_prompts():
     """
