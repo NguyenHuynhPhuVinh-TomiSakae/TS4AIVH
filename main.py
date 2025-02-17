@@ -80,6 +80,11 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
                 raise e
 
 def process_xml(input_file, output_file, cache_file, count_file):
+    """
+    Các tham số đã được đổi tên để khớp với cách gọi:
+    - input_file thay vì input_path
+    - output_file thay vì output_path
+    """
     print(f"\nBắt đầu xử lý file {input_file}")
     
     # Tải cache và số request
@@ -146,6 +151,16 @@ def process_xml(input_file, output_file, cache_file, count_file):
 
     print(f"\nĐã hoàn thành! Kết quả được lưu vào {output_file}")
 
+def get_file_paths(package_name):
+    """Tạo đường dẫn cho các file dựa trên tên gói"""
+    base_path = f"{package_name}/{package_name}"
+    return {
+        'input': f"{base_path}.xml",
+        'output': f"{base_path}_vietnamese.xml",
+        'cache': f"{package_name}/translation_cache.json",
+        'count': "total_request_count.txt"
+    }
+
 def main():
     list_available_prompts()
     prompt_type = input("Chọn loại prompt (nhập tên hoặc số thứ tự): ").lower()
@@ -161,13 +176,16 @@ def main():
     if prompt_type in prompt_number_mapping:
         prompt_type = prompt_number_mapping[prompt_type]
     
-    # Thực thi
-    input_path = 'SP58/SP58.xml'
-    output_path = 'SP58/SP58_vietnamese.xml'
-    cache_path = 'SP58/translation_cache.json'
-    count_path = 'SP58/request_count.txt'
-
-    process_xml(input_path, output_path, cache_path, count_path)
+    package_name = input("Nhập tên gói (ví dụ: SP58): ").strip()
+    paths = get_file_paths(package_name)
+    
+    # Sửa lại tên tham số khi gọi hàm để khớp với định nghĩa
+    process_xml(
+        input_file=paths['input'],
+        output_file=paths['output'],
+        cache_file=paths['cache'],
+        count_file=paths['count']
+    )
 
 if __name__ == "__main__":
     main()
