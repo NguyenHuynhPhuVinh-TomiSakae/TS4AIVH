@@ -4,6 +4,7 @@ import os
 import time
 import json
 from dotenv import load_dotenv
+from prompts import DEFAULT_PROMPT, get_prompt_by_type, list_available_prompts
 
 # Tải biến môi trường từ file .env
 load_dotenv()
@@ -36,7 +37,7 @@ def save_request_count(count_file, count):
     with open(count_file, 'w') as f:
         f.write(str(count))
 
-def translate_text(text, translation_cache, cache_file, count_file, request_count):
+def translate_text(text, translation_cache, cache_file, count_file, request_count, prompt_type='basic'):
     """Dịch văn bản sử dụng Gemini với retry và delay"""
     if text in translation_cache:
         print(f"Đã tìm thấy trong cache: {text}")
@@ -54,9 +55,7 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
         try:
             print(f"\nRequest số {request_count + 1}")
             print(f"Đang dịch: {text}")
-            prompt = f"""Translate this English text to Vietnamese for The Sims 4 game localization. 
-            Keep the translation casual and friendly, suitable for gaming context. 
-            Maintain any game-specific terms. Only return the Vietnamese translation, nothing else: {text}"""
+            prompt = get_prompt_by_type(prompt_type).format(text=text)
             
             response = model.generate_content(prompt)
             translated = response.text.strip()
@@ -147,10 +146,28 @@ def process_xml(input_file, output_file, cache_file, count_file):
 
     print(f"\nĐã hoàn thành! Kết quả được lưu vào {output_file}")
 
-# Thực thi
-input_path = 'SP58/SP58.xml'
-output_path = 'SP58/SP58_vietnamese.xml'
-cache_path = 'SP58/translation_cache.json'
-count_path = 'SP58/request_count.txt'
+def main():
+    list_available_prompts()
+    prompt_type = input("Chọn loại prompt (nhập tên hoặc số thứ tự): ").lower()
+    
+    # Chuyển đổi số thứ tự sang tên prompt
+    prompt_number_mapping = {
+        '1': 'basic',
+        '2': 'gaming',
+        '3': 'detailed',
+        '4': 'concise'
+    }
+    
+    if prompt_type in prompt_number_mapping:
+        prompt_type = prompt_number_mapping[prompt_type]
+    
+    # Thực thi
+    input_path = 'SP58/SP58.xml'
+    output_path = 'SP58/SP58_vietnamese.xml'
+    cache_path = 'SP58/translation_cache.json'
+    count_path = 'SP58/request_count.txt'
 
-process_xml(input_path, output_path, cache_path, count_path)
+    process_xml(input_path, output_path, cache_path, count_path)
+
+if __name__ == "__main__":
+    main()
