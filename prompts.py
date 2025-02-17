@@ -1,63 +1,36 @@
 PROMPTS = {
     # Prompt dịch cơ bản
-    'BASIC_TRANSLATION': """You are a Vietnamese translator for The Sims 4 game.
-IMPORTANT: YOU MUST ONLY RETURN THE VIETNAMESE TRANSLATION, NOTHING ELSE.
-DO NOT:
-- Repeat the English text
-- Explain your translation
-- Add any comments
-- Add any analysis
-- Add any notes
+    'BASIC_TRANSLATION': """You are a Vietnamese translator for The Sims 4.
+RETURN ONLY THE VIETNAMESE TRANSLATION.
+- Keep all tags and placeholders unchanged
+- Use casual Vietnamese tone
 
-Rules:
-- Keep all HTML-like tags exactly as they appear
-- Preserve all placeholders and object references
-- Do not translate content inside tags/placeholders
-- Use casual and friendly tone
-
-Text to translate: <<text>>""",
+<<text>>""",
 
     # Prompt dịch với ngữ cảnh game
-    'GAMING_CONTEXT': """You are translating for The Sims 4 game.
-YOUR RESPONSE MUST CONTAIN ONLY THE VIETNAMESE TRANSLATION.
-DO NOT INCLUDE:
-- The original English text
-- Any explanations
-- Any comments
-- Any analysis
-
-Rules:
+    'BASIC_TRANSLATION_FROM': """You are a Vietnamese translator for The Sims 4.
+RETURN ONLY THE VIETNAMESE TRANSLATION.
 - Keep all tags and placeholders unchanged
-- Use gaming-appropriate language
-- Keep casual tone
-- Preserve all formatting
+- Keep (FROM...) structure unchanged
+- Use casual Vietnamese tone
 
-Text: <<text>>""",
+<<text>>""",
 
     # Prompt dịch với hướng dẫn chi tiết
-    'DETAILED_INSTRUCTION': """You are a Sims 4 Vietnamese translator.
-RESPOND WITH THE VIETNAMESE TRANSLATION ONLY.
-DO NOT ADD:
-- Original text
-- Explanations
-- Comments
-- Notes
-- Analysis
+    'DETAILED_INSTRUCTION': """RETURN ONLY THE VIETNAMESE TRANSLATION.
+- Keep all tags and placeholders unchanged
+- Keep (FROM...) structure unchanged
+- Use casual Vietnamese gaming tone
+- No explanations or English text
 
-Rules:
-- Keep all HTML tags and formatting
-- Preserve all placeholders
-- Use informal pronouns
-- Natural gaming language
-
-Text: <<text>>""",
+<<text>>""",
 
     # Prompt ngắn gọn
-    'CONCISE': """RETURN ONLY VIETNAMESE TRANSLATION, NO OTHER TEXT. Keep tags/placeholders: <<text>>"""
+    'CONCISE': """VIETNAMESE TRANSLATION ONLY. Keep tags/placeholders/FROM: <<text>>"""
 }
 
 # Prompt mặc định đang sử dụng
-DEFAULT_PROMPT = PROMPTS['BASIC_TRANSLATION']
+DEFAULT_PROMPT = PROMPTS['BASIC_TRANSLATION_FROM']
 
 def get_prompt_by_type(prompt_type):
     """
@@ -65,7 +38,7 @@ def get_prompt_by_type(prompt_type):
     """
     prompt_mapping = {
         'basic': PROMPTS['BASIC_TRANSLATION'],
-        'gaming': PROMPTS['GAMING_CONTEXT'],
+        'basic_from': PROMPTS['BASIC_TRANSLATION_FROM'],
         'detailed': PROMPTS['DETAILED_INSTRUCTION'],
         'concise': PROMPTS['CONCISE']
     }
@@ -78,6 +51,6 @@ def list_available_prompts():
     """
     print("\nCác loại prompt có sẵn:")
     print("1. basic    - Prompt dịch cơ bản")
-    print("2. gaming   - Prompt với ngữ cảnh game")
+    print("2. basic_from - Prompt dịch cơ bản fix (FROM...)")
     print("3. detailed - Prompt với hướng dẫn chi tiết")
     print("4. concise  - Prompt ngắn gọn\n") 
