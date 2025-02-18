@@ -4,14 +4,80 @@ import os
 import time
 import json
 from dotenv import load_dotenv
-from prompts import DEFAULT_PROMPT, get_prompt_by_type, list_available_prompts
 
 # Tải biến môi trường từ file .env
 load_dotenv()
 
-# Cấu hình Gemini API sử dụng key từ env
-genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-model = genai.GenerativeModel('gemini-2.0-flash')
+# Cấu hình cho model
+generation_config = {
+    "temperature": 1,
+    "top_p": 0.95,
+    "top_k": 40,
+    "max_output_tokens": 8192,
+    "response_mime_type": "text/plain",
+}
+
+def init_chat():
+    """Khởi tạo chat session với lịch sử mẫu"""
+    genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+    
+    model = genai.GenerativeModel(
+        model_name="gemini-2.0-flash",
+        generation_config=generation_config
+    )
+    
+    chat = model.start_chat(history=[
+    {
+      "role": "user",
+      "parts": [
+        "You are a Vietnamese translator for The Sims 4.\nRETURN ONLY THE VIETNAMESE TRANSLATION.\n- Keep all tags and placeholders unchanged\n- Use casual Vietnamese tone\n\nTranslate to Vietnamese: This abstract sculpture doesn't have a specific shape intended. It's made to let you imagine what you want. Apparently some people see a llama in it.",
+      ],
+    },
+    {
+      "role": "model",
+      "parts": [
+        "Cái tượng trừu tượng này không có hình dáng cụ thể nào cả. Nó được làm ra để bạn tha hồ tưởng tượng đó. Nghe đâu có người còn nhìn ra con lạc đà không bướu trong đó nữa cơ.\n",
+      ],
+    },
+    {
+      "role": "user",
+      "parts": [
+        "When translating nouns, avoid adding particles such as \"nè\", \"hả\", \"á\" at the end. For example, \"Ancient Bust\" should be translated as \"Tượng Cổ\", not \"Tượng Cổ nè\"\nTranslate to Vietnamese: Wishmaker",
+      ],
+    },
+    {
+      "role": "model",
+      "parts": [
+        "Người Ước Nguyện\n",
+      ],
+    },
+    {
+      "role": "user",
+      "parts": [
+        "With the format (From...) when translating, keep it as (Từ...) for example: (From Designing Jewelry) -> (Từ Việc Thiết Kế Trang Sức)\nTranslate to Vietnamese: (From Crystal Crafter Aspiration)",
+      ],
+    },
+    {
+      "role": "model",
+      "parts": [
+        "(Từ Nguyện Vọng Chế Tạo Pha Lê)\n",
+      ],
+    },
+    {
+      "role": "user",
+      "parts": [
+        "All forms such as {M0.he}{F0.she} or {M0.his}{F0.her} and other placeholders MUST BE KEPT UNCHANGED.\nTranslate to Vietnamese: {0.SimFirstName} befriended a Dust Bunny! Since {M0.he}{F0.she} made {M0.his}{F0.her} fluffy companion feel so welcomed and cared for in {M0.his}{F0.her} house, this dust bunny will behave a bit differently. It can now survive in even the cleanest environments and will no longer be destroyed by cleaning around the house - it's here to stay. \\n\\nBefriended Dust Bunnies will also show their appreciation by finding rarer items and occasionally even digging up substantial piles of Simoleons. ",
+      ],
+    },
+    {
+      "role": "model",
+      "parts": [
+        "{0.SimFirstName} đã kết bạn với Thỏ Bụi! Vì {M0.he}{F0.she} đã làm cho người bạn lông xù của {M0.his}{F0.her} cảm thấy được chào đón và chăm sóc trong nhà của {M0.his}{F0.her}, nên thỏ bụi này sẽ cư xử hơi khác một chút. Giờ nó có thể sống sót ngay cả trong môi trường sạch sẽ nhất và sẽ không còn bị tiêu diệt khi dọn dẹp nhà cửa nữa - nó sẽ ở lại đây. \\n\\nThỏ Bụi đã kết bạn cũng sẽ thể hiện sự cảm kích bằng cách tìm kiếm những vật phẩm hiếm hơn và đôi khi thậm chí còn đào được những đống Simoleon đáng kể.\n",
+      ],
+    },
+  ])
+    
+    return chat
 
 def load_translation_cache(cache_file):
     """Đọc cache từ file JSON"""
@@ -37,8 +103,8 @@ def save_request_count(count_file, count):
     with open(count_file, 'w') as f:
         f.write(str(count))
 
-def translate_text(text, translation_cache, cache_file, count_file, request_count, prompt_type='basic'):
-    """Dịch văn bản sử dụng Gemini với retry và delay"""
+def translate_text(text, translation_cache, cache_file, count_file, request_count, chat_session):
+    """Dịch văn bản sử dụng chat session"""
     if text in translation_cache:
         print(f"Đã tìm thấy trong cache: {text}")
         return translation_cache[text], request_count
@@ -48,17 +114,14 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
 
     max_retries = 3
     retry_delay = 5
-    
     time.sleep(4)
 
     for attempt in range(max_retries):
         try:
             print(f"\nRequest số {request_count + 1}")
             print(f"Đang dịch: {text}")
-            prompt_template = get_prompt_by_type(prompt_type)
-            prompt = prompt_template.format(text=text)
             
-            response = model.generate_content(prompt)
+            response = chat_session.send_message(f"Translate to Vietnamese: {text}")
             translated = response.text.strip()
             print(f"Bản dịch: {translated}")
             
@@ -69,6 +132,7 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
             save_translation_cache(cache_file, translation_cache)
             
             return translated, request_count
+            
         except Exception as e:
             if "Đã đạt giới hạn 1500 request" in str(e):
                 raise e
@@ -80,7 +144,7 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
                 print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
                 raise e
 
-def process_xml(input_file, output_file, cache_file, count_file):
+def process_xml(input_file, output_file, cache_file, count_file, chat_session):
     """
     Các tham số đã được đổi tên để khớp với cách gọi:
     - input_file thay vì input_path
@@ -133,7 +197,8 @@ def process_xml(input_file, output_file, cache_file, count_file):
                     translation_cache, 
                     cache_file,
                     count_file,
-                    request_count
+                    request_count,
+                    chat_session
                 )
             
             new_elem = ET.Element('Text')
@@ -163,29 +228,18 @@ def get_file_paths(package_name):
     }
 
 def main():
-    list_available_prompts()
-    prompt_type = input("Chọn loại prompt (nhập tên hoặc số thứ tự): ").lower()
-    
-    # Chuyển đổi số thứ tự sang tên prompt
-    prompt_number_mapping = {
-        '1': 'basic',
-        '2': 'gaming',
-        '3': 'detailed',
-        '4': 'concise'
-    }
-    
-    if prompt_type in prompt_number_mapping:
-        prompt_type = prompt_number_mapping[prompt_type]
-    
     package_name = input("Nhập tên gói (ví dụ: SP58): ").strip()
     paths = get_file_paths(package_name)
     
-    # Sửa lại tên tham số khi gọi hàm để khớp với định nghĩa
+    # Khởi tạo chat session
+    chat_session = init_chat()
+    
     process_xml(
         input_file=paths['input'],
         output_file=paths['output'],
         cache_file=paths['cache'],
-        count_file=paths['count']
+        count_file=paths['count'],
+        chat_session=chat_session
     )
 
 if __name__ == "__main__":
