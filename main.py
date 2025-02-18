@@ -10,11 +10,11 @@ load_dotenv()
 
 # Cấu hình cho model
 generation_config = {
-    "temperature": 1,
-    "top_p": 0.95,
-    "top_k": 40,
-    "max_output_tokens": 8192,
-    "response_mime_type": "text/plain",
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 40,
+  "max_output_tokens": 8192,
+  "response_mime_type": "application/json",
 }
 
 def init_chat():
@@ -66,13 +66,25 @@ def init_chat():
     {
       "role": "user",
       "parts": [
-        "All forms such as {M0.he}{F0.she} or {M0.his}{F0.her} and other placeholders MUST BE KEPT UNCHANGED.\nTranslate to Vietnamese: {0.SimFirstName} befriended a Dust Bunny! Since {M0.he}{F0.she} made {M0.his}{F0.her} fluffy companion feel so welcomed and cared for in {M0.his}{F0.her} house, this dust bunny will behave a bit differently. It can now survive in even the cleanest environments and will no longer be destroyed by cleaning around the house - it's here to stay. \\n\\nBefriended Dust Bunnies will also show their appreciation by finding rarer items and occasionally even digging up substantial piles of Simoleons. ",
+        "All forms such as {M0.he}{F0.she} or {M0.his}{F0.her} or {F0.Lady}{M0.Lord} and other {M0.}, {F0.} MUST BE KEPT UNCHANGED.\nTranslate to Vietnamese: {0.SimFirstName} befriended a Dust Bunny! Since {M0.he}{F0.she} made {M0.his}{F0.her} fluffy companion feel so welcomed and cared for in {M0.his}{F0.her} house, this dust bunny will behave a bit differently. It can now survive in even the cleanest environments and will no longer be destroyed by cleaning around the house - it's here to stay. \\n\\nBefriended Dust Bunnies will also show their appreciation by finding rarer items and occasionally even digging up substantial piles of Simoleons. ",
       ],
     },
     {
       "role": "model",
       "parts": [
         "{0.SimFirstName} đã kết bạn với Thỏ Bụi! Vì {M0.he}{F0.she} đã làm cho người bạn lông xù của {M0.his}{F0.her} cảm thấy được chào đón và chăm sóc trong nhà của {M0.his}{F0.her}, nên thỏ bụi này sẽ cư xử hơi khác một chút. Giờ nó có thể sống sót ngay cả trong môi trường sạch sẽ nhất và sẽ không còn bị tiêu diệt khi dọn dẹp nhà cửa nữa - nó sẽ ở lại đây. \\n\\nThỏ Bụi đã kết bạn cũng sẽ thể hiện sự cảm kích bằng cách tìm kiếm những vật phẩm hiếm hơn và đôi khi thậm chí còn đào được những đống Simoleon đáng kể.\n",
+      ],
+    },
+    {
+      "role": "user",
+      "parts": [
+        " If there are multiple pieces of content to translate, return them as key-value pairs (KEY1, KEY2, etc.) according to the number of contents.\nKEY1-Translate to Vietnamese: Thank you for your hat donation. This will surely keep someone's head warm!\nKEY2-Translate to Vietnamese: {0.SimFirstName} befriended a Dust Bunny! Since {M0.he}{F0.she} made {M0.his}{F0.her} fluffy companion feel so welcomed and cared for in {M0.his}{F0.her} house, this dust bunny will behave a bit differently. It can now survive in even the cleanest environments and will no longer be destroyed by cleaning around the house - it's here to stay. \\n\\nBefriended Dust Bunnies will also show their appreciation by finding rarer items and occasionally even digging up substantial piles of Simoleons.\nKEY3-Translate to Vietnamese: (From Crystal Crafter Aspiration)\nKEY4-Translate to Vietnamese: Wishmaker\nKEY5-Translate to Vietnamese: {0.SimFirstName} befriended a Dust Bunny! Since {M0.he}{F0.she} made {M0.his}{F0.her} fluffy companion feel so welcomed and cared for in {M0.his}{F0.her} house, this dust bunny will behave a bit differently. It can now survive in even the cleanest environments and will no longer be destroyed by cleaning around the house - it's here to stay. \\n\\nBefriended Dust Bunnies will also show their appreciation by finding rarer items and occasionally even digging up substantial piles of Simoleons.",
+      ],
+    },
+    {
+      "role": "model",
+      "parts": [
+        "```json\n{\n\"KEY1\": \"Cảm ơn bạn đã quyên góp mũ. Chắc chắn nó sẽ giúp ai đó giữ ấm đầu!\",\n\"KEY2\": \"{0.SimFirstName} đã kết bạn với Thỏ Bụi! Vì {M0.he}{F0.she} đã làm cho người bạn lông xù của {M0.his}{F0.her} cảm thấy được chào đón và chăm sóc trong nhà của {M0.his}{F0.her}, nên thỏ bụi này sẽ cư xử hơi khác một chút. Giờ nó có thể sống sót ngay cả trong môi trường sạch sẽ nhất và sẽ không còn bị tiêu diệt khi dọn dẹp nhà cửa nữa - nó sẽ ở lại đây. \\n\\nThỏ Bụi đã kết bạn cũng sẽ thể hiện sự cảm kích bằng cách tìm kiếm những vật phẩm hiếm hơn và đôi khi thậm chí còn đào được những đống Simoleon đáng kể.\",\n\"KEY3\": \"(Từ Nguyện Vọng Chế Tạo Pha Lê)\",\n\"KEY4\": \"Người Ước Nguyện\",\n\"KEY5\": \"{0.SimFirstName} đã kết bạn với Thỏ Bụi! Vì {M0.he}{F0.she} đã làm cho người bạn lông xù của {M0.his}{F0.her} cảm thấy được chào đón và chăm sóc trong nhà của {M0.his}{F0.her}, nên thỏ bụi này sẽ cư xử hơi khác một chút. Giờ nó có thể sống sót ngay cả trong môi trường sạch sẽ nhất và sẽ không còn bị tiêu diệt khi dọn dẹp nhà cửa nữa - nó sẽ ở lại đây. \\n\\nThỏ Bụi đã kết bạn cũng sẽ thể hiện sự cảm kích bằng cách tìm kiếm những vật phẩm hiếm hơn và đôi khi thậm chí còn đào được những đống Simoleon đáng kể.\"\n}\n```",
       ],
     },
   ])
@@ -144,15 +156,61 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
                 print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
                 raise e
 
-def process_xml(input_file, output_file, cache_file, count_file, chat_session):
+def translate_multiple_texts(texts, translation_cache, cache_file, count_file, request_count, chat_session):
+    """Dịch nhiều văn bản cùng lúc và trả về dạng JSON"""
+    prompt = "\n".join([f"KEY{i+1}-Translate to Vietnamese: {text}" for i, text in enumerate(texts)])
+    
+    if request_count >= 1500:
+        raise Exception("Đã đạt giới hạn 1500 request. Dừng chương trình.")
+
+    max_retries = 3
+    retry_delay = 5
+    time.sleep(4)
+
+    for attempt in range(max_retries):
+        try:
+            print(f"\nRequest số {request_count + 1}")
+            print(f"Đang dịch {len(texts)} văn bản")
+            
+            response = chat_session.send_message(prompt)
+            # Chuyển đổi response text thành dict
+            response_text = response.text.strip()
+            try:
+                translations = json.loads(response_text)
+            except json.JSONDecodeError:
+                raise Exception("Không thể parse JSON từ phản hồi của AI")
+            
+            # Cập nhật cache cho từng bản dịch
+            for i, text in enumerate(texts):
+                key = f"KEY{i+1}"
+                if key in translations:
+                    translation_cache[text] = translations[key]
+            
+            save_translation_cache(cache_file, translation_cache)
+            
+            request_count += 1
+            save_request_count(count_file, request_count)
+            
+            return translations, request_count
+            
+        except Exception as e:
+            if "Đã đạt giới hạn 1500 request" in str(e):
+                raise e
+            if attempt < max_retries - 1:
+                print(f"Lỗi: {e}. Thử lại sau {retry_delay} giây...")
+                time.sleep(retry_delay)
+                retry_delay *= 2
+            else:
+                print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
+                raise e
+
+def process_xml(input_file, output_file, cache_file, count_file, chat_session, batch_size=1):
     """
-    Các tham số đã được đổi tên để khớp với cách gọi:
-    - input_file thay vì input_path
-    - output_file thay vì output_path
+    Xử lý file XML với khả năng dịch nhiều phần tử cùng lúc
+    batch_size: số lượng phần tử cần dịch trong một lần
     """
     print(f"\nBắt đầu xử lý file {input_file}")
     
-    # Tải cache và số request
     translation_cache = load_translation_cache(cache_file)
     request_count = load_request_count(count_file)
     print(f"Số request đã thực hiện: {request_count}")
@@ -161,52 +219,60 @@ def process_xml(input_file, output_file, cache_file, count_file, chat_session):
         print("Đã đạt giới hạn 1500 request. Không thể tiếp tục.")
         return
     
-    # Kiểm tra file output đã tồn tại
     if os.path.exists(output_file):
         print(f"Đọc file output hiện có: {output_file}")
         existing_tree = ET.parse(output_file)
         existing_root = existing_tree.getroot()
-        # Tạo dict các bản dịch đã có
         existing_translations = {elem.get('Key'): elem.text for elem in existing_root.findall('Text')}
     else:
         existing_translations = {}
 
-    # Đọc file input
     tree = ET.parse(input_file)
     root = tree.getroot()
-    
-    # Tạo root mới cho output
     new_root = ET.Element('STBLKeyStringList')
     
-    total_elements = len(root.findall('Text'))
+    elements = root.findall('Text')
+    total_elements = len(elements)
     print(f"Tổng số phần tử cần dịch: {total_elements}")
     
     try:
-        for index, text_elem in enumerate(root.findall('Text'), 1):
-            key = text_elem.get('Key')
-            original_text = text_elem.text
+        # Xử lý theo batch
+        for i in range(0, total_elements, batch_size):
+            batch_elements = elements[i:i + batch_size]
+            texts_to_translate = []
+            keys = []
             
-            print(f"\nXử lý phần tử {index}/{total_elements}")
+            for elem in batch_elements:
+                key = elem.get('Key')
+                if key in existing_translations:
+                    # Thêm phần tử đã có vào output
+                    new_elem = ET.Element('Text')
+                    new_elem.set('Key', key)
+                    new_elem.text = existing_translations[key]
+                    new_root.append(new_elem)
+                    print(f"Đã có bản dịch cho key {key}")
+                else:
+                    texts_to_translate.append(elem.text)
+                    keys.append(key)
             
-            if key in existing_translations:
-                translated_text = existing_translations[key]
-                print(f"Đã có bản dịch cho key {key}")
-            else:
-                translated_text, request_count = translate_text(
-                    original_text, 
-                    translation_cache, 
+            if texts_to_translate:
+                translations, request_count = translate_multiple_texts(
+                    texts_to_translate,
+                    translation_cache,
                     cache_file,
                     count_file,
                     request_count,
                     chat_session
                 )
+                
+                # Thêm các bản dịch mới vào output
+                for j, key in enumerate(keys):
+                    new_elem = ET.Element('Text')
+                    new_elem.set('Key', key)
+                    new_elem.text = translations[f"KEY{j+1}"]
+                    new_root.append(new_elem)
             
-            new_elem = ET.Element('Text')
-            new_elem.set('Key', key)
-            new_elem.text = translated_text
-            new_root.append(new_elem)
-            
-            # Lưu file sau mỗi lần dịch thành công
+            # Lưu file sau mỗi batch
             tree = ET.ElementTree(new_root)
             tree.write(output_file, encoding='UTF-8', xml_declaration=True)
             
@@ -229,9 +295,12 @@ def get_file_paths(package_name):
 
 def main():
     package_name = input("Nhập tên gói (ví dụ: SP58): ").strip()
-    paths = get_file_paths(package_name)
+    batch_size = int(input("Nhập số lượng KEY cần dịch cùng lúc (1-5): ").strip())
     
-    # Khởi tạo chat session
+    # Giới hạn batch_size từ 1-5
+    batch_size = max(1, min(5, batch_size))
+    
+    paths = get_file_paths(package_name)
     chat_session = init_chat()
     
     process_xml(
@@ -239,7 +308,8 @@ def main():
         output_file=paths['output'],
         cache_file=paths['cache'],
         count_file=paths['count'],
-        chat_session=chat_session
+        chat_session=chat_session,
+        batch_size=batch_size
     )
 
 if __name__ == "__main__":
