@@ -136,56 +136,14 @@ def save_request_count(count_file, count):
     with open(count_file, 'w') as f:
         f.write(str(count))
 
-def translate_text(text, translation_cache, cache_file, count_file, request_count, chat_session):
-    """Dịch văn bản sử dụng chat session"""
-    if text in translation_cache:
-        print(f"Đã tìm thấy trong cache: {text}")
-        return translation_cache[text], request_count
-
-    if request_count >= 1500:
-        raise Exception("Đã đạt giới hạn 1500 request. Dừng chương trình.")
-
-    max_retries = 3
-    retry_delay = 5
-    time.sleep(4)
-
-    for attempt in range(max_retries):
-        try:
-            print(f"\nRequest số {request_count + 1}")
-            print(f"Đang dịch: {text}")
-            
-            response = chat_session.send_message(f"Translate to Vietnamese: {text}")
-            translated = response.text.strip()
-            print(f"Bản dịch: {translated}")
-            
-            request_count += 1
-            save_request_count(count_file, request_count)
-            
-            translation_cache[text] = translated
-            save_translation_cache(cache_file, translation_cache)
-            
-            return translated, request_count
-            
-        except Exception as e:
-            if "Đã đạt giới hạn 1500 request" in str(e):
-                raise e
-            if attempt < max_retries - 1:
-                print(f"Lỗi: {e}. Thử lại sau {retry_delay} giây...")
-                time.sleep(retry_delay)
-                retry_delay *= 2
-            else:
-                print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
-                raise e
-
 def translate_multiple_texts(texts, translation_cache, cache_file, chat_session):
     """Dịch nhiều văn bản cùng lúc và trả về dạng JSON"""
     prompt = "\n".join([f"KEY{i+1}-Translate to Vietnamese: {text}" for i, text in enumerate(texts)])
     
-    max_retries = 3
-    retry_delay = 10
-    time.sleep(4)  # Đợi 15 giây giữa các lần gọi API
+    retry_delay = 10  # Thời gian chờ cố định 10 giây
+    time.sleep(4)
 
-    for attempt in range(max_retries):
+    while True:
         try:
             print(f"Đang dịch {len(texts)} văn bản")
             
@@ -195,7 +153,8 @@ def translate_multiple_texts(texts, translation_cache, cache_file, chat_session)
             try:
                 translations = json.loads(response_text)
             except json.JSONDecodeError:
-                raise Exception("Không thể parse JSON từ phản hồi của AI")
+                print("Lỗi: Không thể parse JSON từ phản hồi của AI")
+                raise
             
             # Cập nhật cache cho từng bản dịch
             for i, text in enumerate(texts):
@@ -207,13 +166,14 @@ def translate_multiple_texts(texts, translation_cache, cache_file, chat_session)
             return translations
             
         except Exception as e:
-            if attempt < max_retries - 1:
-                print(f"Lỗi: {e}. Thử lại sau {retry_delay} giây...")
+            error_message = str(e).lower()
+            if "429" in error_message or "resource has been exhausted" in error_message:
+                print(f"Lỗi giới hạn quota (429). Thử lại sau {retry_delay} giây...")
                 time.sleep(retry_delay)
-                retry_delay *= 2
+                continue
             else:
-                print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
-                raise e
+                print(f"Lỗi nghiêm trọng: {e}")
+                raise
 
 def process_xml(input_file, output_file, cache_file, chat_session, batch_size=5):
     """
