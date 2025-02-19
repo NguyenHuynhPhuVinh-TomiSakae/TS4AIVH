@@ -7,24 +7,15 @@ on:
         description: 'Tên gói cần dịch'
         required: true
         type: string
-      batch_size:
-        description: 'Số lượng KEY mỗi lần (1-5)'
-        required: true
-        type: choice
-        options:
-        - "1"
-        - "2"
-        - "3"
-        - "4"
-        - "5"
-        default: "3"
 
 jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -39,12 +30,14 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY_2 }}
         run: |
-          python main.py ${{ github.event.inputs.package_name }} ${{ github.event.inputs.batch_size }}
+          python main.py ${{ github.event.inputs.package_name }} 5
           
       - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add .
-          git commit -m "Translated ${{ github.event.inputs.package_name }} with batch size ${{ github.event.inputs.batch_size }}"
-          git push 
+          git commit -m "Translated ${{ github.event.inputs.package_name }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
