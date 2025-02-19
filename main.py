@@ -4,6 +4,7 @@ import os
 import time
 import json
 from dotenv import load_dotenv
+import sys  # Thêm import này ở đầu file
 
 # Tải biến môi trường từ file .env
 load_dotenv()
@@ -156,20 +157,16 @@ def translate_text(text, translation_cache, cache_file, count_file, request_coun
                 print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
                 raise e
 
-def translate_multiple_texts(texts, translation_cache, cache_file, count_file, request_count, chat_session):
+def translate_multiple_texts(texts, translation_cache, cache_file, chat_session):
     """Dịch nhiều văn bản cùng lúc và trả về dạng JSON"""
     prompt = "\n".join([f"KEY{i+1}-Translate to Vietnamese: {text}" for i, text in enumerate(texts)])
     
-    if request_count >= 1500:
-        raise Exception("Đã đạt giới hạn 1500 request. Dừng chương trình.")
-
     max_retries = 3
-    retry_delay = 5
-    time.sleep(4)
+    retry_delay = 10
+    time.sleep(4)  # Đợi 15 giây giữa các lần gọi API
 
     for attempt in range(max_retries):
         try:
-            print(f"\nRequest số {request_count + 1}")
             print(f"Đang dịch {len(texts)} văn bản")
             
             response = chat_session.send_message(prompt)
@@ -187,15 +184,9 @@ def translate_multiple_texts(texts, translation_cache, cache_file, count_file, r
                     translation_cache[text] = translations[key]
             
             save_translation_cache(cache_file, translation_cache)
-            
-            request_count += 1
-            save_request_count(count_file, request_count)
-            
-            return translations, request_count
+            return translations
             
         except Exception as e:
-            if "Đã đạt giới hạn 1500 request" in str(e):
-                raise e
             if attempt < max_retries - 1:
                 print(f"Lỗi: {e}. Thử lại sau {retry_delay} giây...")
                 time.sleep(retry_delay)
@@ -204,7 +195,7 @@ def translate_multiple_texts(texts, translation_cache, cache_file, count_file, r
                 print(f"Không thể dịch text sau {max_retries} lần thử. Dừng chương trình.")
                 raise e
 
-def process_xml(input_file, output_file, cache_file, count_file, chat_session, batch_size=1):
+def process_xml(input_file, output_file, cache_file, chat_session, batch_size=5):
     """
     Xử lý file XML với khả năng dịch nhiều phần tử cùng lúc
     batch_size: số lượng phần tử cần dịch trong một lần
@@ -212,12 +203,6 @@ def process_xml(input_file, output_file, cache_file, count_file, chat_session, b
     print(f"\nBắt đầu xử lý file {input_file}")
     
     translation_cache = load_translation_cache(cache_file)
-    request_count = load_request_count(count_file)
-    print(f"Số request đã thực hiện: {request_count}")
-    
-    if request_count >= 1500:
-        print("Đã đạt giới hạn 1500 request. Không thể tiếp tục.")
-        return
     
     if os.path.exists(output_file):
         print(f"Đọc file output hiện có: {output_file}")
@@ -256,12 +241,10 @@ def process_xml(input_file, output_file, cache_file, count_file, chat_session, b
                     keys.append(key)
             
             if texts_to_translate:
-                translations, request_count = translate_multiple_texts(
+                translations = translate_multiple_texts(
                     texts_to_translate,
                     translation_cache,
                     cache_file,
-                    count_file,
-                    request_count,
                     chat_session
                 )
                 
@@ -294,23 +277,52 @@ def get_file_paths(package_name):
     }
 
 def main():
-    package_name = input("Nhập tên gói (ví dụ: SP58): ").strip()
-    batch_size = int(input("Nhập số lượng KEY cần dịch cùng lúc (1-5): ").strip())
+    """
+    Usage: python main.py <package_name> <batch_size>
+    Example: python main.py GP11 5
+    """
+    if len(sys.argv) != 3:
+        print("Cách sử dụng: python main.py <package_name> <batch_size>")
+        print("Ví dụ: python main.py GP11 5")
+        sys.exit(1)
     
-    # Giới hạn batch_size từ 1-5
-    batch_size = max(1, min(5, batch_size))
-    
-    paths = get_file_paths(package_name)
-    chat_session = init_chat()
-    
-    process_xml(
-        input_file=paths['input'],
-        output_file=paths['output'],
-        cache_file=paths['cache'],
-        count_file=paths['count'],
-        chat_session=chat_session,
-        batch_size=batch_size
-    )
+    try:
+        package_name = sys.argv[1]
+        batch_size = int(sys.argv[2])
+        
+        if not (1 <= batch_size <= 5):
+            print("Số lượng KEY phải từ 1-5")
+            sys.exit(1)
+            
+        print(f"Đang xử lý gói: {package_name}")
+        print(f"Số lượng KEY mỗi lần: {batch_size}")
+        
+        # Tải API key từ .env
+        load_dotenv()
+        api_key = os.getenv('GEMINI_API_KEY')
+        if not api_key:
+            print("Lỗi: Không tìm thấy GEMINI_API_KEY trong file .env")
+            sys.exit(1)
+            
+        genai.configure(api_key=api_key)
+        
+        paths = get_file_paths(package_name)
+        chat_session = init_chat()
+        
+        process_xml(
+            input_file=paths['input'],
+            output_file=paths['output'],
+            cache_file=paths['cache'],
+            chat_session=chat_session,
+            batch_size=batch_size
+        )
+        
+    except ValueError:
+        print("Lỗi: batch_size phải là số nguyên")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Lỗi không mong đợi: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
