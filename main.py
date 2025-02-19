@@ -204,11 +204,27 @@ def process_xml(input_file, output_file, cache_file, chat_session, batch_size=5)
     
     translation_cache = load_translation_cache(cache_file)
     
+    # Đọc file output hiện có nếu tồn tại
+    last_translated_index = -1
     if os.path.exists(output_file):
         print(f"Đọc file output hiện có: {output_file}")
         existing_tree = ET.parse(output_file)
         existing_root = existing_tree.getroot()
         existing_translations = {elem.get('Key'): elem.text for elem in existing_root.findall('Text')}
+        
+        # Đọc file input để tìm vị trí cuối cùng đã dịch
+        input_tree = ET.parse(input_file)
+        input_elements = input_tree.getroot().findall('Text')
+        
+        for i, elem in enumerate(input_elements):
+            if elem.get('Key') not in existing_translations:
+                last_translated_index = i - 1
+                break
+        
+        if last_translated_index == -1 and input_elements:  # Nếu tất cả đã được dịch
+            last_translated_index = len(input_elements) - 1
+            
+        print(f"Đã dịch đến phần tử thứ: {last_translated_index + 1}")
     else:
         existing_translations = {}
 
@@ -216,14 +232,24 @@ def process_xml(input_file, output_file, cache_file, chat_session, batch_size=5)
     root = tree.getroot()
     new_root = ET.Element('STBLKeyStringList')
     
+    # Sao chép các phần tử đã dịch vào new_root
     elements = root.findall('Text')
-    total_elements = len(elements)
-    print(f"Tổng số phần tử cần dịch: {total_elements}")
+    for i in range(last_translated_index + 1):
+        elem = elements[i]
+        new_elem = ET.Element('Text')
+        new_elem.set('Key', elem.get('Key'))
+        new_elem.text = existing_translations[elem.get('Key')]
+        new_root.append(new_elem)
+    
+    # Tiếp tục dịch từ vị trí cuối cùng
+    remaining_elements = elements[last_translated_index + 1:]
+    total_remaining = len(remaining_elements)
+    print(f"Số phần tử còn lại cần dịch: {total_remaining}")
     
     try:
         # Xử lý theo batch
-        for i in range(0, total_elements, batch_size):
-            batch_elements = elements[i:i + batch_size]
+        for i in range(0, total_remaining, batch_size):
+            batch_elements = remaining_elements[i:i + batch_size]
             texts_to_translate = []
             keys = []
             
