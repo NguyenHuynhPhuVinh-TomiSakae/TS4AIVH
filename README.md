@@ -1,4 +1,4 @@
-﻿# TS4AIVH - The Sims 4 AI Vietnamese Translation.
+﻿# TS4AIVH - The Sims 4 AI Vietnamese Translation
 
 Dự án dịch game The Sims 4 sang tiếng Việt sử dụng trí tuệ nhân tạo (AI).
 
