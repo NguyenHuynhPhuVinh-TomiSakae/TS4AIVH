@@ -1,0 +1,38 @@
+name: Get Translation Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Tên gói cần lấy file'
+        required: true
+        type: string
+
+jobs:
+  get-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+        
+      - name: Upload as Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: translation-files
+          path: |
+            ${{ github.event.inputs.package_name }}/${{ github.event.inputs.package_name }}_vietnamese.xml
+            ${{ github.event.inputs.package_name }}/translation_cache.json
+            
+      - name: Push to GitHub
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git pull origin main --rebase
+          git add "${{ github.event.inputs.package_name }}/${{ github.event.inputs.package_name }}_vietnamese.xml"
+          git add "${{ github.event.inputs.package_name }}/translation_cache.json"
+          git commit -m "Upload translation files for ${{ github.event.inputs.package_name }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
