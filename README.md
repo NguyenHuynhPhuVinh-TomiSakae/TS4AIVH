@@ -34,7 +34,12 @@ Chúng tôi rất hoan nghênh sự đóng góp từ cộng đồng. Nếu bạn
 [Thông tin liên hệ sẽ được cập nhật]
 
 
-main.py - Lệnh chính gọi AI dịch
-fix.py - Lệnh kiểm tra KEY bị thiếu ở bản gốc và bản đã dịch
-check.py - Lệnh kiểm tra lỗi trong quá trình dịch
-update.py - Lệnh chuyển nội dung từ case vào XML
+## Các lệnh chính
+
+| File | Mô tả |
+|------|--------|
+| main.py | Lệnh chính gọi AI dịch |
+| fix.py | Lệnh kiểm tra KEY bị thiếu ở bản gốc và bản đã dịch |
+| check.py | Lệnh kiểm tra lỗi trong quá trình dịch |
+| update.py | Lệnh chuyển nội dung từ case vào XML |
+| base_update.py | Cập nhật XML mới đã dịch vào base |
