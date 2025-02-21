@@ -1,0 +1,10 @@
+{
+  "strange_characters": {},
+  "placeholder_errors": {
+    "2B29ED43": {
+      "original": "{1.SimName}'s {0.ObjectName}",
+      "translated": "{0.ObjectName} của {1.SimName}",
+      "error": "Placeholder không khớp. Gốc: {1.SimName}, Dịch: {0.ObjectName}; Placeholder không khớp. Gốc: {0.ObjectName}, Dịch: {1.SimName}"
+    }
+  }
+}
